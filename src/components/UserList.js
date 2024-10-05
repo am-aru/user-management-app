@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import UserForm from './UserForm';
-import './UserList.css'; // Assuming we have a separate CSS file for styles
+import './UserList.css';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isFormOpen, setIsFormOpen] = useState(false); // State to control form visibility
-  const [userToEdit, setUserToEdit] = useState(null); // State for the user being edited
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
 
   useEffect(() => {
+    // Fetch initial users
     axios.get('https://jsonplaceholder.typicode.com/users')
       .then(response => {
         setUsers(response.data);
@@ -24,20 +25,25 @@ const UserList = () => {
   }, []);
 
   const deleteUser = (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      axios.delete(`https://jsonplaceholder.typicode.com/users/${id}`)
-        .then(() => {
-          setUsers(users.filter(user => user.id !== id));
-        })
-        .catch(err => {
-          setError('Failed to delete user');
-        });
-    }
+    // if (window.confirm("Are you sure you want to delete this user?")) {
+      // Filter out the user to delete
+      const updatedUsers = users.filter(user => user.id !== id);
+      setUsers(updatedUsers);
+      reorderUserIds(updatedUsers); // Reorder IDs after deletion
+    
+  };
+
+  const reorderUserIds = (updatedUsers) => {
+    const reorderedUsers = updatedUsers.map((user, index) => ({
+      ...user,
+      id: index + 1 // Assign new ID based on index
+    }));
+    setUsers(reorderedUsers);
   };
 
   const toggleForm = () => {
-    setIsFormOpen(!isFormOpen); // Toggle form visibility
-    setUserToEdit(null); // Reset the user to edit when opening the form
+    setIsFormOpen(!isFormOpen);
+    setUserToEdit(null);
   };
 
   const handleEdit = (user) => {
@@ -45,18 +51,24 @@ const UserList = () => {
     setIsFormOpen(true);
   };
 
+  const handleAddUser = (newUser) => {
+    // Add a new user with ID based on current length
+    const newUsersList = [...users, { ...newUser, id: users.length + 1 }];
+    setUsers(newUsersList);
+  };
+
   return (
     <div>
       <h1>User Management</h1>
-      <button className="add-user-button" onClick={toggleForm}>+</button> {/* Button to open modal */}
+      <button className="add-user-button" onClick={toggleForm}>+</button>
 
       {loading && <p>Loading users...</p>}
       {error && <p>{error}</p>}
-      
+
       <table className="user-table">
         <thead>
           <tr>
-            <th>Id</th>
+            <th>ID</th>
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
@@ -66,7 +78,7 @@ const UserList = () => {
         <tbody>
           {users.map(user => (
             <tr key={user.id}>
-                <td>{user.id}</td>
+              <td>{user.id}</td>
               <td>{user.name}</td>
               <td>{user.email}</td>
               <td>{user.phone}</td>
@@ -81,10 +93,9 @@ const UserList = () => {
 
       {isFormOpen && (
         <UserForm
-          users={users}
-          setUsers={setUsers}
+          onAddUser={handleAddUser} // Pass the add user handler
           userToEdit={userToEdit}
-          onClose={toggleForm} // Pass toggle function to UserForm
+          onClose={toggleForm}
         />
       )}
     </div>
@@ -92,3 +103,4 @@ const UserList = () => {
 };
 
 export default UserList;
+

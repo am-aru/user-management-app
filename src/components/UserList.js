@@ -60,7 +60,7 @@ const UserList = () => {
 
       {userState.loading && <p>Loading users...</p>}
       {userState.error && <p>{userState.error}</p>}
-
+       <div  class="table-container"> 
       <table className="user-table">
         <thead>
           <tr>
@@ -86,7 +86,7 @@ const UserList = () => {
           ))}
         </tbody>
       </table>
-
+      </div>
       {isFormOpen && (
         <UserForm
           users={userState.users}

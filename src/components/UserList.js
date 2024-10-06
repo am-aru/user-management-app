@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useContext} from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import UserForm from './UserForm';
 import './UserList.css';
+import { UserContext } from '../App';
 
 const UserList = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
+  
+  const {setUsers , setLoading , setError , userState} = useContext(UserContext);
 
   useEffect(() => {
-    // Fetch initial users
     axios.get('https://jsonplaceholder.typicode.com/users')
       .then(response => {
         setUsers(response.data);
@@ -25,18 +23,17 @@ const UserList = () => {
   }, []);
 
   const deleteUser = (id) => {
-    // if (window.confirm("Are you sure you want to delete this user?")) {
-      // Filter out the user to delete
-      const updatedUsers = users.filter(user => user.id !== id);
+    alert("Do you want to delete user?")
+      const updatedUsers = userState.users.filter(user => user.id !== id);
       setUsers(updatedUsers);
-      reorderUserIds(updatedUsers); // Reorder IDs after deletion
+      reorderUserIds(updatedUsers); 
     
   };
 
   const reorderUserIds = (updatedUsers) => {
     const reorderedUsers = updatedUsers.map((user, index) => ({
       ...user,
-      id: index + 1 // Assign new ID based on index
+      id: index + 1
     }));
     setUsers(reorderedUsers);
   };
@@ -52,8 +49,7 @@ const UserList = () => {
   };
 
   const handleAddUser = (newUser) => {
-    // Add a new user with ID based on current length
-    const newUsersList = [...users, { ...newUser, id: users.length + 1 }];
+    const newUsersList = [...userState.users, { ...newUser, id: userState.users.length + 1 }];
     setUsers(newUsersList);
   };
 
@@ -62,8 +58,8 @@ const UserList = () => {
       <h1>User Management</h1>
       <button className="add-user-button" onClick={toggleForm}>+</button>
 
-      {loading && <p>Loading users...</p>}
-      {error && <p>{error}</p>}
+      {userState.loading && <p>Loading users...</p>}
+      {userState.error && <p>{userState.error}</p>}
 
       <table className="user-table">
         <thead>
@@ -76,7 +72,7 @@ const UserList = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map(user => (
+          {userState.users.map(user => (
             <tr key={user.id}>
               <td>{user.id}</td>
               <td>{user.name}</td>
@@ -93,7 +89,8 @@ const UserList = () => {
 
       {isFormOpen && (
         <UserForm
-          onAddUser={handleAddUser} // Pass the add user handler
+          users={userState.users}
+          onAddUser={handleAddUser} 
           userToEdit={userToEdit}
           onClose={toggleForm}
         />
